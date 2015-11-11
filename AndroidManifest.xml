@@ -33,7 +33,6 @@
         
         <service
             android:name="com.example.mmplayer.MusicService">
-            
         </service>
     </application>
 

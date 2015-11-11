@@ -1,5 +1,7 @@
 package com.example.mmplayer;
 
+import java.io.IOException;
+
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -13,7 +15,7 @@ public class MusicService extends Service{
 	
 	private Uri uri = null;	
 	private int position;
-	private int id;
+	private int[] _id;
 	
 	
 	@Override
@@ -33,31 +35,55 @@ public class MusicService extends Service{
 		
 		
 		position = intent.getIntExtra("position", -1);
-		id = intent.getIntExtra("id", -1);
-		uri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, "" + id);
+		System.out.println(">>>>>>>>"+position);
+		_id = intent.getIntArrayExtra("_id");
+		System.out.println(">>>>>>>>"+_id[position]);
+		uri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, "" + _id[position]);
+		System.out.println(">>>>>>>>"+uri);
 		//DBOperate(id);
-		try {
-			mp.reset();
-			mp.setDataSource(this, uri);
-
-		} catch (Exception e) {
-			e.printStackTrace();
+		if(mp!= null) {
+			mp.start();
+		} else {
+			mp = new MediaPlayer();
+			try {
+				mp.setDataSource(this,uri);
+				mp.prepare();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//mp.prepare();
+			mp.start();
 		}
-		
+//		try {
+//			mp.reset();
+//			mp.setDataSource(this, uri);
+//			mp.prepare();
+//			mp.start();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+
 		return super.onStartCommand(intent, flags, startId);
 	}
 
 	@Override
 	public void onDestroy() {
-		// TODO Auto-generated method stub
-		super.onDestroy();
 		if (mp != null) {
 			mp.stop();
+			mp.release();
 			mp = null;
 		}
-		if (!mp.isPlaying()) {
-			play();
-		}
+		super.onDestroy();
 	}
 
 	@Override
